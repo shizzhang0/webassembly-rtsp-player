@@ -1,4 +1,4 @@
-package org.timothy.rtspwebsocketproxy;
+package org.timothy.backend;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

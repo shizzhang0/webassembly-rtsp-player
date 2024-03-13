@@ -1,4 +1,4 @@
-package org.timothy.rtspwebsocketproxy;
+package org.timothy.backend;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
