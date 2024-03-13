@@ -1,0 +1,15 @@
+.root {
+    .header {
+        text-align: center;
+
+        .form {
+            .form-input {
+                margin-left: 16px;
+            }
+            .form-btn {
+                margin-left: 16px;
+            }
+        }
+
+    }
+}
