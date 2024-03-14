@@ -3,15 +3,13 @@ import './App.css';
 import {useWebsocket} from "./hooks/useWebsocket";
 import {StompSubscription} from "@stomp/stompjs/src/stomp-subscription";
 
-export const WS_SUBSCRIBE_STREAM_DATA = '/user/topic/steam-data/real-time';
+export const WS_SUBSCRIBE_STREAM_DATA = '/user/topic/stream-data/real-time';
 export const WS_SEND_RTSP_URL = '/app/rtsp-url';
 export const STOMP_URL = '/stomp/endpoint';
 
 const App = () => {
-    const [rtspUrl, setRtspUrl] = useState<string>('');
-    const [logInfo, setLogInfo] = useState<string>('');
+    const [rtspUrl, setRtspUrl] = useState<string>('rtsp://192.168.10.174:8554/rtsp/live1');
     const {connected, connect, subscribe, send} = useWebsocket({url: STOMP_URL});
-    const [subscription, setSubscription] = useState<StompSubscription | null>();
 
     useEffect(() => {
         if (!connected) {
@@ -27,14 +25,12 @@ const App = () => {
     const onOpen = () => {
         if (connected) {
             send(WS_SEND_RTSP_URL, {}, rtspUrl);
-            let stompSubscription = subscribe(WS_SUBSCRIBE_STREAM_DATA, onMessage, {});
-            setSubscription(stompSubscription);
+            subscribe(WS_SUBSCRIBE_STREAM_DATA, onReceiveData, {});
         }
     }
 
-    const onMessage = (message: any) => {
+    const onReceiveData = (message: any) => {
         const data = JSON.parse(message.body);
-        setLogInfo(data);
         console.log(data);
     }
 
@@ -44,14 +40,11 @@ const App = () => {
                 <h1>rtsp wasm player</h1>
                 <div className="form">
                     <label>rtspUrl:</label>
-                    <input className="form-input" onChange={onRtspUrlChange}/>
+                    <input className="form-input" onChange={onRtspUrlChange} defaultValue={rtspUrl}/>
                     <button className="form-btn" onClick={onOpen}>Open</button>
                 </div>
             </div>
             <div className="video">
-            </div>
-            <div className="log">
-                <p>{logInfo}</p>
             </div>
         </div>
     );

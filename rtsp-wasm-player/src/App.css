@@ -5,6 +5,7 @@
         .form {
             .form-input {
                 margin-left: 16px;
+                width: 300px;
             }
             .form-btn {
                 margin-left: 16px;
