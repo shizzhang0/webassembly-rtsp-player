@@ -1,12 +1,8 @@
 const {createProxyMiddleware} = require("http-proxy-middleware");
 
 module.exports = function (app) {
-    app.use(function (req, res, next) {
-        res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
-        res.setHeader("Cross-Origin-Embedder-Policy", "require-corp");
-        next();
-    });
     app.use(stompProxy);
+    app.use(wasmProxy);
 }
 
 const stompProxy = createProxyMiddleware("/stomp", {
@@ -14,3 +10,13 @@ const stompProxy = createProxyMiddleware("/stomp", {
     ws: true,
     changeOrigin: true,
 });
+
+const wasmProxy = createProxyMiddleware("/wasm/", {
+        target: "http://localhost:8080/",
+        changeOrigin: true,
+        secure: false,
+        pathRewrite: {
+            '^/wasm/': '',
+        },
+    }
+);
