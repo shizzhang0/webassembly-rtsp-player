@@ -2,7 +2,7 @@ const {createProxyMiddleware} = require("http-proxy-middleware");
 
 module.exports = function (app) {
     app.use(stompProxy);
-    app.use(wasmProxy);
+    // app.use(wasmProxy);
 }
 
 const stompProxy = createProxyMiddleware("/stomp", {
