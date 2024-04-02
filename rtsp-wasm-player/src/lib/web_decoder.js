@@ -27,7 +27,7 @@ Module['ready'] = new Promise((resolve, reject) => {
   readyPromiseResolve = resolve;
   readyPromiseReject = reject;
 });
-["_memory","_initDecoder","_GetBuffer","_Decode","_GetWidth","_GetHeight","_GetRenderData","___indirect_function_table","_ff_h264_cabac_tables","onRuntimeInitialized"].forEach((prop) => {
+["_malloc","_free","_memory","_initDecoder","_GetBuffer","_Decode","_GetWidth","_GetHeight","_GetRenderData","___indirect_function_table","_ff_h264_cabac_tables","onRuntimeInitialized"].forEach((prop) => {
   if (!Object.getOwnPropertyDescriptor(Module['ready'], prop)) {
     Object.defineProperty(Module['ready'], prop, {
       get: () => abort('You are getting ' + prop + ' on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js'),
@@ -323,13 +323,6 @@ function assert(condition, text) {
 
 // We used to include malloc/free by default in the past. Show a helpful error in
 // builds with assertions.
-function _malloc() {
-  abort('malloc() called but not included in the build - add `_malloc` to EXPORTED_FUNCTIONS');
-}
-function _free() {
-  // Show a helpful error since we used to include free by default in the past.
-  abort('free() called but not included in the build - add `_free` to EXPORTED_FUNCTIONS');
-}
 
 // Memory management
 
@@ -740,7 +733,7 @@ function createWasm() {
     // This assertion doesn't hold when emscripten is run in --post-link
     // mode.
     // TODO(sbc): Read INITIAL_MEMORY out of the wasm file in post-link mode.
-    //assert(wasmMemory.buffer.byteLength === 536870912);
+    //assert(wasmMemory.buffer.byteLength === 16777216);
     updateMemoryViews();
 
     addOnInit(wasmExports['__wasm_call_ctors']);
@@ -4716,6 +4709,8 @@ var wasmImports = {
 };
 var wasmExports = createWasm();
 var ___wasm_call_ctors = createExportWrapper('__wasm_call_ctors');
+var _malloc = Module['_malloc'] = createExportWrapper('malloc');
+var _free = Module['_free'] = createExportWrapper('free');
 var _initDecoder = Module['_initDecoder'] = createExportWrapper('initDecoder');
 var _GetBuffer = Module['_GetBuffer'] = createExportWrapper('GetBuffer');
 var _Decode = Module['_Decode'] = createExportWrapper('Decode');
@@ -4736,7 +4731,7 @@ var dynCall_viiijj = Module['dynCall_viiijj'] = createExportWrapper('dynCall_vii
 var dynCall_jij = Module['dynCall_jij'] = createExportWrapper('dynCall_jij');
 var dynCall_jii = Module['dynCall_jii'] = createExportWrapper('dynCall_jii');
 var dynCall_jiji = Module['dynCall_jiji'] = createExportWrapper('dynCall_jiji');
-var _ff_h264_cabac_tables = Module['_ff_h264_cabac_tables'] = 825036;
+var _ff_h264_cabac_tables = Module['_ff_h264_cabac_tables'] = 825100;
 
 // include: postamble.js
 // === Auto-generated postamble setup entry stuff ===

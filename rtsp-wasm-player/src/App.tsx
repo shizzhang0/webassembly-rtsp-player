@@ -4,6 +4,7 @@ import {useWebsocket} from "./hooks/useWebsocket";
 import {useWasm} from "./hooks/useWasm";
 import loadWebDecoder from "./lib/web_decoder";
 import WebglScreen from "./lib/webgl_screen";
+import axios from "axios";
 
 export const WS_SUBSCRIBE_STREAM_DATA = '/user/topic/stream-data/real-time';
 export const WS_SEND_RTSP_URL = '/app/rtsp-url';
@@ -19,6 +20,8 @@ const App = () => {
 
     let ptr: any;
     let webglScreen: any;
+    let initializing: boolean = false;
+    let hasInitialized: boolean = false;
 
     useEffect(() => {
         if (!connected) {
@@ -50,15 +53,40 @@ const App = () => {
             send(WS_SEND_RTSP_URL, {}, rtspUrl);
             subscribe(WS_SUBSCRIBE_STREAM_DATA, onReceiveData, {});
 
-            ptr = module._initDecoder();
             const canvas = canvasRef.current;
-            canvas!.width = 960;
-            canvas!.height = 480;
+            canvas!.width = 1920;
+            canvas!.height = 1080;
             webglScreen = new WebglScreen(canvas);
         }
     }
 
     const onReceiveData = (message: any) => {
+        if (!initializing) {
+            initializing = true;
+            axios.get('/api/av-codec-parameters/?rtspUrl=' + rtspUrl, {
+                headers: {
+                    "Content-Type": "application/json",
+                }
+            })
+                .then((res) => {
+                    const data = JSON.stringify(res.data);
+                    const dst = module._malloc(data.length);
+                    data.split('').forEach((char: string, index: number) => {
+                        module.HEAP8[(dst + index) >> 0] = char.charCodeAt(0);
+                    });
+                    ptr = module._initDecoder(dst);
+                    hasInitialized = true;
+                })
+                .catch((ex) => {
+                    console.log(ex);
+                    initializing = false;
+                });
+        }
+
+        if (!hasInitialized) {
+            console.log('web decoder has not initialized');
+            return;
+        }
         const data = JSON.parse(message.body);
         const buffer = new Uint8Array(data);
         const length = buffer.length;

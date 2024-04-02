@@ -1,5 +1,6 @@
 package org.timothy.backend.service;
 
+import com.github.benmanes.caffeine.cache.Cache;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -15,10 +16,20 @@ public class RtspWebsocketProxyService {
 
     private final SimpMessagingTemplate simpMessagingTemplate;
     private final ExecutorService executorService;
+    private final Cache<String, Object> caffeineCache;
 
     public void grab(String sessionId, String rtspUrl) {
-        GrabTask grabTask = new GrabTask(sessionId, rtspUrl, simpMessagingTemplate);
+        GrabTask grabTask = new GrabTask(sessionId, rtspUrl, simpMessagingTemplate, caffeineCache);
         executorService.execute(grabTask);
+    }
+
+    public String findAVCodecParameters(String rtspUrl) {
+        Object obj = caffeineCache.getIfPresent(rtspUrl);
+        if (obj != null) {
+            return String.valueOf(obj);
+        }
+
+        return null;
     }
 
 }
