@@ -94,9 +94,9 @@ const App = () => {
         const dst = module._GetBuffer(ptr, length);    // 通知C/C++分配好一块内存用来接收JS收到的H264流.
         module.HEAPU8.set(buffer, dst);    // 将JS层的数据传递给C/C++层.
         if (module._Decode(ptr, length) >= 0) {
-            var width = module._GetWidth(ptr);
-            var height = module._GetHeight(ptr);
-            var size = width * height * 3 / 2;
+            let width = module._GetWidth(ptr);
+            let height = module._GetHeight(ptr);
+            let size = width * height * 3 / 2;
             console.log("decode success, width:%d height:%d", width, height);
 
             const yuvData = module._GetRenderData(ptr); // 得到C/C++生成的YUV数据.
