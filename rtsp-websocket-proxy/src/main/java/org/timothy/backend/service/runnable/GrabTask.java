@@ -13,11 +13,13 @@ import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.FFmpegLogCallback;
 import org.bytedeco.javacv.FrameGrabber.Exception;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.timothy.backend.utils.JSONUtil;
+import org.timothy.backend.utils.JsonUtil;
 
 import java.util.Arrays;
 
 import static org.bytedeco.ffmpeg.global.avutil.AVMEDIA_TYPE_VIDEO;
+import static org.timothy.backend.common.CacheConstant.AV_CODEC_PARAMETERS_PREFIX;
+import static org.timothy.backend.common.CacheConstant.GRAB_TASK_RUNNING_PREFIX;
 
 
 @NoArgsConstructor
@@ -36,8 +38,6 @@ public class GrabTask implements Runnable {
         this.caffeineCache = caffeineCache;
     }
 
-    boolean running = false;
-
     @Override
     public void run() {
         log.info("start grab task sessionId:{}, steamUrl:{}", sessionId, rtspUrl);
@@ -49,7 +49,7 @@ public class GrabTask implements Runnable {
             grabber.setOption("rtsp_transport", "tcp");
 
             grabber.start(true);
-            running = true;
+            caffeineCache.put(GRAB_TASK_RUNNING_PREFIX + sessionId, true);
 
             AVFormatContext formatCtx = grabber.getFormatContext();
 
@@ -66,10 +66,11 @@ public class GrabTask implements Runnable {
             }
 
             AVCodecParameters param = formatCtx.streams(videoStreamIndex).codecpar();
-            caffeineCache.put(rtspUrl, JSONUtil.toAVCodecParametersJSON(param));
+            caffeineCache.put(AV_CODEC_PARAMETERS_PREFIX + rtspUrl, JsonUtil.toAVCodecParametersJSON(param));
 
             AVPacket pkt;
-            while (running) {
+            Boolean running = (Boolean) caffeineCache.getIfPresent(GRAB_TASK_RUNNING_PREFIX + sessionId);
+            while (Boolean.TRUE.equals(running)) {
                 pkt = grabber.grabPacket();
                 // 过滤空包
                 if (pkt == null || pkt.size() == 0 || pkt.data() == null) {
@@ -83,9 +84,10 @@ public class GrabTask implements Runnable {
                 simpMessagingTemplate.convertAndSendToUser(sessionId, "/topic/stream-data/real-time", Arrays.toString(buffer));
 
                 avcodec.av_packet_unref(pkt);
+                running = (Boolean) caffeineCache.getIfPresent(GRAB_TASK_RUNNING_PREFIX + sessionId);
             }
         } catch (Exception e) {
-            running = false;
+            caffeineCache.put(GRAB_TASK_RUNNING_PREFIX + sessionId, false);
             log.info(e.getMessage());
         } finally {
             try {
@@ -93,6 +95,7 @@ public class GrabTask implements Runnable {
                     grabber.close();
                     grabber.release();
                 }
+                log.info("stop grab task sessionId:{}, steamUrl:{}", sessionId, rtspUrl);
             } catch (Exception e) {
                 log.info(e.getMessage());
             }

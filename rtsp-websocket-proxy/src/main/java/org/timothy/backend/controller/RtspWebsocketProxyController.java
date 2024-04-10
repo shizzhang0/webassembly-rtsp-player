@@ -26,11 +26,19 @@ public class RtspWebsocketProxyController {
         return rtspWebsocketProxyService.findAVCodecParameters(rtspUrl);
     }
 
-    @MessageMapping("/rtsp-url")
-    public void receiveRtspUrl(String rtspUrl, StompHeaderAccessor accessor) {
+    @MessageMapping("/start/rtsp")
+    public void startGrab(String rtspUrl, StompHeaderAccessor accessor) {
         if (Objects.nonNull(accessor) && StringUtils.hasLength(rtspUrl)) {
             String sessionId = accessor.getSessionId();
-            rtspWebsocketProxyService.grab(sessionId, rtspUrl);
+            rtspWebsocketProxyService.startGrab(sessionId, rtspUrl);
+        }
+    }
+
+    @MessageMapping("/stop/rtsp")
+    public void stopGrab(StompHeaderAccessor accessor) {
+        if (Objects.nonNull(accessor)) {
+            String sessionId = accessor.getSessionId();
+            rtspWebsocketProxyService.stopGrab(sessionId);
         }
     }
 

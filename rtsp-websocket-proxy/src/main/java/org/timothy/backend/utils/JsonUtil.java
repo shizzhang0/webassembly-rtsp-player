@@ -8,7 +8,7 @@ import static org.bytedeco.ffmpeg.global.avutil.AVMEDIA_TYPE_AUDIO;
 import static org.bytedeco.ffmpeg.global.avutil.AVMEDIA_TYPE_SUBTITLE;
 import static org.bytedeco.ffmpeg.global.avutil.AVMEDIA_TYPE_VIDEO;
 
-public class JSONUtil {
+public class JsonUtil {
 
     public static String toAVRationalJSON(AVRational r) {
         JSONObject jsonObject = new JSONObject();
