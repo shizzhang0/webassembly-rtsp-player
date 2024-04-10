@@ -7,8 +7,11 @@
                 margin-left: 16px;
                 width: 300px;
             }
-            .form-btn {
-                margin-left: 16px;
+            .form-group {
+                margin-top: 8px;
+                .form-group-btn-open {
+                    margin-right: 8px;
+                }
             }
         }
 

@@ -7,7 +7,8 @@ import WebglScreen from "./lib/webgl_screen";
 import axios from "axios";
 
 export const WS_SUBSCRIBE_STREAM_DATA = '/user/topic/stream-data/real-time';
-export const WS_SEND_RTSP_URL = '/app/rtsp-url';
+export const WS_SEND_START_GRAB = '/app/start/rtsp';
+export const WS_SEND_STOP_GRAB = '/app/stop/rtsp';
 export const STOMP_URL = '/stomp/endpoint';
 // export const WASM_URL = '/wasm/ffmpeg.wasm';
 
@@ -22,6 +23,7 @@ const App = () => {
     let webglScreen: any;
     let initializing: boolean = false;
     let hasInitialized: boolean = false;
+    let hasClosed: boolean = false;
 
     useEffect(() => {
         if (!connected) {
@@ -50,13 +52,23 @@ const App = () => {
 
     const onOpen = () => {
         if (connected) {
-            send(WS_SEND_RTSP_URL, {}, rtspUrl);
+            send(WS_SEND_START_GRAB, {}, rtspUrl);
             subscribe(WS_SUBSCRIBE_STREAM_DATA, onReceiveData, {});
 
             const canvas = canvasRef.current;
-            canvas!.width = 1920;
-            canvas!.height = 1080;
+            canvas!.width = 800;
+            canvas!.height = 600;
             webglScreen = new WebglScreen(canvas);
+        }
+    }
+
+    const onClose = () => {
+        if (webglScreen) {
+            send(WS_SEND_STOP_GRAB, {}, {});
+            hasClosed = true;
+            webglScreen.destroy();
+            console.log('webgl screen destroy');
+            webglScreen = undefined;
         }
     }
 
@@ -90,10 +102,10 @@ const App = () => {
         const data = JSON.parse(message.body);
         const buffer = new Uint8Array(data);
         const length = buffer.length;
-        console.log("receive pkt length :", length);
+        // console.log("receive pkt length :", length);
         const dst = module._GetBuffer(ptr, length);    // 通知C/C++分配好一块内存用来接收JS收到的H264流.
         module.HEAPU8.set(buffer, dst);    // 将JS层的数据传递给C/C++层.
-        if (module._Decode(ptr, length) >= 0) {
+        if (module._Decode(ptr, length) >= 0 && !hasClosed) {
             let width = module._GetWidth(ptr);
             let height = module._GetHeight(ptr);
             let size = width * height * 3 / 2;
@@ -115,7 +127,10 @@ const App = () => {
                 <div className="form">
                     <label>rtspUrl:</label>
                     <input className="form-input" onChange={onRtspUrlChange} defaultValue={rtspUrl}/>
-                    <button className="form-btn" onClick={onOpen}>Open</button>
+                    <div className="form-group">
+                        <button className="form-group-btn-open" onClick={onOpen}>Open</button>
+                        <button onClick={onClose}>Close</button>
+                    </div>
                 </div>
             </div>
             <div className="context">
