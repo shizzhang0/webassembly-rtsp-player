@@ -75,11 +75,7 @@ const App = () => {
     const onReceiveData = (message: any) => {
         if (!initializing) {
             initializing = true;
-            axios.get('/api/av-codec-parameters/?rtspUrl=' + rtspUrl, {
-                headers: {
-                    "Content-Type": "application/json",
-                }
-            })
+            axios.get('/api/av-codec-parameters/?rtspUrl=' + rtspUrl)
                 .then((res) => {
                     const data = JSON.stringify(res.data);
                     const dst = module._malloc(data.length);
