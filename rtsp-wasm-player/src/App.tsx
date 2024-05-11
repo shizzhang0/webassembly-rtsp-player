@@ -10,6 +10,7 @@ export const WS_SUBSCRIBE_STREAM_DATA = '/user/topic/stream-data/real-time';
 export const WS_SEND_START_GRAB = '/app/start/rtsp';
 export const WS_SEND_STOP_GRAB = '/app/stop/rtsp';
 export const STOMP_URL = '/stomp/endpoint';
+export const API_AV_PARAMETERS = '/api/av-codec-parameters';
 // export const WASM_URL = '/wasm/ffmpeg.wasm';
 
 const App = () => {
@@ -75,7 +76,7 @@ const App = () => {
     const onReceiveData = (message: any) => {
         if (!initializing) {
             initializing = true;
-            axios.get('/api/av-codec-parameters/?rtspUrl=' + rtspUrl)
+            axios.get(API_AV_PARAMETERS + '/?rtspUrl=' + rtspUrl)
                 .then((res) => {
                     const data = JSON.stringify(res.data);
                     const dst = module._malloc(data.length);
